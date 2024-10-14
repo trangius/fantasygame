@@ -2,7 +2,6 @@
 
 // En klass för att hålla reda på en magiker.
 // Denna kan vi sen skapa flera magiker (instanser) av
-using System.Runtime.CompilerServices;
 
 class Mage
 {
