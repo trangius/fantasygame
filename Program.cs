@@ -1,5 +1,4 @@
 ﻿// TODO: skapa fler fiender och fler attacker
-// TODO: shield
 
 // En klass för att hålla reda på en magiker.
 // Denna kan vi sen skapa flera magiker (instanser) av
@@ -11,6 +10,8 @@ class Mage
     public string Name { get; set; }
     public int Health { get; set; }
     public int Mana { get; set; }
+    public int BaseDamage { get; set; }
+    public int Armor { get; set; }
 
     // konstruktor för att skapa magikern:
     public Mage(string name)
@@ -18,6 +19,8 @@ class Mage
         Random random = new Random();
         Health = 20 + random.Next(0, 80);
         Mana = 20 + random.Next(0, 80);
+        BaseDamage = 10;
+        Armor = 5;
         Name = name;
     }
     
@@ -32,7 +35,7 @@ class Mage
         if(Mana > 10)
         {
             Random random = new Random();
-            damage = 10 + random.Next(0, 30);
+            damage = BaseDamage + random.Next(0, 30);
             Console.WriteLine($"{Name} kastar en eldboll som gör {damage} skada");
             Mana -= 10;
         }
@@ -43,6 +46,13 @@ class Mage
             damage = 0;
         }
         return damage;
+    }
+
+    public void DealDamage(int damage)
+    {
+        int totalDamage = damage - Armor;
+        System.Console.WriteLine($"{Name} tar {totalDamage} skada");
+        Health -= totalDamage;
     }
 }
 
@@ -92,7 +102,9 @@ static class Program
                     int enemyIndex = int.Parse(Console.ReadLine())-1;
                     Mage mage = mages[enemyIndex];
                     // ge fienden skada:
-                    mage.Health -= 100 + random.Next(0, 30);
+                    int damage = 20 + random.Next(0, 20);
+                    System.Console.WriteLine($"Du attackerar {mage.Name} för {damage} skada");
+                    mage.DealDamage(damage);
                     break;
 
                 case "2": // Heala sig själv
