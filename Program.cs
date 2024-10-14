@@ -1,61 +1,4 @@
-﻿// TODO: skapa fler fiender och fler attacker
-
-// En klass för att hålla reda på en magiker.
-// Denna kan vi sen skapa flera magiker (instanser) av
-
-class Mage
-{
-    // Egenskaper
-    public string Name { get; set; }
-    public int Health { get; set; }
-    public int Mana { get; set; }
-    public int BaseDamage { get; set; }
-    public int Armor { get; set; }
-
-    // konstruktor för att skapa magikern:
-    public Mage(string name)
-    {
-        Random random = new Random();
-        Health = 20 + random.Next(0, 80);
-        Mana = 20 + random.Next(0, 80);
-        BaseDamage = 10;
-        Armor = 5;
-        Name = name;
-    }
-    
-    // Magikern attackerar
-    // return value - denna metod returnerar ett heltal som är skadan som magikern gör
-    public int Attack()
-    {
-        int damage; // hur mycket skada ska magikern göra?
-
-        // om magikern har mer än 10 mana, kan den kasta en eldboll
-        // TODO: Lägg till fler attacker som vi slumpar emellan
-        if(Mana > 10)
-        {
-            Random random = new Random();
-            damage = BaseDamage + random.Next(0, 30);
-            Console.WriteLine($"{Name} kastar en eldboll som gör {damage} skada");
-            Mana -= 10;
-        }
-        else // magikern har inte tillräckligt med mana för att kasta en eldboll
-        {
-            Console.WriteLine($"{Name} har för lite mana för att kunna attackera");
-            Mana += 5;
-            damage = 0;
-        }
-        return damage;
-    }
-
-    public void DealDamage(int damage)
-    {
-        int totalDamage = damage - Armor;
-        System.Console.WriteLine($"{Name} tar {totalDamage} skada");
-        Health -= totalDamage;
-    }
-}
-
-// Huvudprogrammet
+﻿// Huvudprogrammet
 static class Program
 {
     static void Main(string[] args)
@@ -64,11 +7,11 @@ static class Program
 
         // skapa en lista med magiker (fiender)
         // TODO: denna lista ska innehålla alla möjliga typer av fiender
-        List<Mage> mages = new List<Mage>();
-        mages.Add(new Mage("Gandalf"));
-        mages.Add(new Mage("Sauron"));
-        mages.Add(new Mage("Saruman"));
-
+        List<Enemy> enemies = new List<Enemy>();
+        enemies.Add(new Mage("Saruman"));
+        enemies.Add(new Assassin("Hitman"));
+        enemies.Add(new Mage("Sauron"));
+        enemies.Add(new Assassin("James Bond"));
 
         // spelloop - spelet körs så länge spelaren har hälsa kvar
         while(playerHealth > 0)
@@ -78,10 +21,18 @@ static class Program
             Console.WriteLine($"Du har {playerHealth} hälsa");
             Console.WriteLine("---------------------------");
             Console.WriteLine("Det finns följande fiender:");
-            for(int i = 0; i < mages.Count; i++)
+            List<int> invisibleEnemyIndexes = new List<int>();
+            for(int i = 0; i < enemies.Count; i++)
             {
-                Mage mage = mages[i];
-                Console.WriteLine($"{i+1}. {mage.Name} har {mage.Health} hälsa och {mage.Mana} mana");
+                if(enemies[i].GetInfo() != null) // kontrolerar så att fienden är synlig
+                {
+                    Console.WriteLine($"{(i+1)}.  {enemies[i].GetInfo()}"); // skriv ut den synliga fienden
+                }
+                else // detta är en osynlig fiende (den returnerade "")
+                { 
+                    // Ingen utskrift här...
+                    invisibleEnemyIndexes.Add(i); // lägg till indexet i listan med osynliga fiender
+                }
             }
             Console.WriteLine("---------------------------");
             Console.WriteLine("Välj vad du vill göra:");
@@ -99,11 +50,17 @@ static class Program
                     // läs in vem spelaren vill attackera,
                     // tag värde -1 för att få rätt index i listan
                     int enemyIndex = int.Parse(Console.ReadLine())-1;
-                    Mage mage = mages[enemyIndex];
+                    // om spelaren valt en osynlig fiende, skriv ut felmeddelande och hoppa ur switchen
+                    if(invisibleEnemyIndexes.Contains(enemyIndex))
+                    {
+                        Console.WriteLine("Du kan inte attackera en osynlig fiende");
+                        break;
+                    }
+                    Enemy e = enemies[enemyIndex];
                     // ge fienden skada:
                     int damage = 20 + random.Next(0, 20);
-                    System.Console.WriteLine($"Du attackerar {mage.Name} för {damage} skada");
-                    mage.DealDamage(damage);
+                    System.Console.WriteLine($"Du attackerar {e.Name} för {damage} skada");
+                    e.Defend(damage);
                     break;
 
                 case "2": // Heala sig själv
@@ -128,14 +85,14 @@ static class Program
             // 
             // ANNARS   låt fienden attackera spelaren 
             // ---------------------------------------------
-            for(int i = 0; i < mages.Count; i++)
+            for(int i = 0; i < enemies.Count; i++)
             {
                 // om fienden har 0 eller mindre hälsa, döda den
-                if(mages[i].Health <= 0)
+                if(enemies[i].Health <= 0)
                 {
-                    Console.WriteLine($"{mages[i].Name} dog");
+                    Console.WriteLine($"{enemies[i].Name} dog");
                     // ta bort fienden från listan utifrån dess index
-                    mages.RemoveAt(i);
+                    enemies.RemoveAt(i);
 
                     // i och med att denna fiende tas bort från listan så kommer 
                     // alla andra fiender att flyttas ett steg uppåt i listan
@@ -148,7 +105,7 @@ static class Program
                 // , på sista elementet
 
                 // Fienden gör sin attack på spelaren:
-                playerHealth -= mages[i].Attack();
+                playerHealth -= enemies[i].Attack();
             }
 
             // ---------------------------------------------
